@@ -1,0 +1,17 @@
+diffusers==0.20.2
+transformers==4.33.1
+accelerate==0.22.0
+safetensors==0.3.1
+neuronx-cc==2.*
+torch-neuronx
+torchvision
+opencv-contrib-python
+opencv-python
+controlnet_aux
+numpy
+matplotlib
+boto3
+Pillow
+requests 
+fastapi     # For web service
+uvicorn     # For running the web service

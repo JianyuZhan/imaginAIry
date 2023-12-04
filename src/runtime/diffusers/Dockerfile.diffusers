@@ -1,0 +1,32 @@
+# See https://github.com/aws/deep-learning-containers/blob/master/available_images.md#user-content-neuron-containers
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference-neuronx:1.13.1-neuronx-py310-sdk2.15.0-ubuntu20.04
+
+RUN mkdir -p /opt/ml/code
+WORKDIR /opt/ml/code
+
+RUN apt-get update -y && \
+  apt-get install -y linux-headers-$(uname -r) git \
+  # The following upgrades are specific to AWS NeuronX packages for Inferentia2 support
+  && apt-get upgrade -y aws-neuronx-dkms=2.* --allow-change-held-packages \
+  && apt-get upgrade -y aws-neuronx-collectives=2.* --allow-change-held-packages \
+  && apt-get upgrade -y aws-neuronx-runtime-lib=2.* --allow-change-held-packages \
+  && apt-get upgrade -y aws-neuronx-tools=2.* --allow-change-held-packages \
+  # Clean up to reduce image size
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+
+# Add PATH for NeuronX tools
+ENV PATH=/opt/aws/neuron/bin:$PATH
+
+# Set pip repository pointing to the Neuron repository 
+RUN python -m pip config set global.extra-index-url https://pip.repos.neuron.amazonaws.com
+
+COPY requirements.txt /opt/ml/code/requirements.txt
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY serve.sh /opt/ml/code/serve.sh
+COPY app.py /opt/ml/code/app.py
+
+ENTRYPOINT ["/bin/bash"]
+CMD  ["/opt/ml/code/serve.sh"]
